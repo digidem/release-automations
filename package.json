@@ -1,20 +1,24 @@
 {
-  "name": "test-branching",
-  "version": "1.37.0-pre",
-  "description": "",
+  "name": "release-automations",
+  "version": "1.0.0",
+  "description": "Release automations for CoMapeo apps",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/gmaclennan/test-branching.git"
-  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/gmaclennan/test-branching/issues"
+  "dependencies": {
+    "semver": "^7.6.3"
   },
-  "homepage": "https://github.com/gmaclennan/test-branching#readme"
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digidem/release-automations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/digidem/release-automations/issues"
+  },
+  "homepage": "https://github.com/digidem/release-automations#readme"
 }
