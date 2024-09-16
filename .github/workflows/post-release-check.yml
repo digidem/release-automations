@@ -74,6 +74,7 @@ jobs:
 
       - name: Create issue to review non-cherry-picked commits
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           ISSUE_BODY: >
             The release candidate branch `${{ github.event.pull_request.head.ref }}`
