@@ -1,6 +1,6 @@
 {
   "name": "release-automations",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Release automations for CoMapeo apps",
   "main": "index.js",
   "scripts": {
