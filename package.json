@@ -1,0 +1,20 @@
+{
+  "name": "test-branching",
+  "version": "1.37.0-pre",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gmaclennan/test-branching.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/gmaclennan/test-branching/issues"
+  },
+  "homepage": "https://github.com/gmaclennan/test-branching#readme"
+}

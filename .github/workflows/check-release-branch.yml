@@ -1,0 +1,40 @@
+name: Check Release Branch
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    branches:
+      - 'release/**'
+
+jobs:
+  check_branch:
+    name: No Commits
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Fetch base branch
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }}
+
+      - name: Check base branch has no commits since merge base
+        env:
+          BASE_BRANCH_HEAD_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -x
+          MERGE_BASE=$(git merge-base $PR_HEAD_SHA $BASE_BRANCH_HEAD_SHA)
+          echo $MERGE_BASE
+          echo $BASE_BRANCH_HEAD_SHA
+          if [ $MERGE_BASE != $BASE_BRANCH_HEAD_SHA ]; then
+            echo "Base branch has commits since merge base"
+            exit 1
+          fi
