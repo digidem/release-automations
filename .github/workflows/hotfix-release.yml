@@ -70,8 +70,8 @@ jobs:
 
       - name: Create branches
         run: |
-          git config --global user.name 'github-actions'
-          git config --global user.email 'github-actions@github.com'
+          git config --global user.name 'awana-release-bot[bot]'
+          git config --global user.email '${{ vars.RELEASE_BOT_USER_ID }}+awana-release-bot[bot]@users.noreply.github.com'
           git checkout -b ${{ steps.branches.outputs.rc }}
 
       - name: Set target release version in package.json
