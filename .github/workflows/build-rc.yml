@@ -1,77 +1,130 @@
 name: Build Release Candidate
 
 on:
-  pull_request:
-    branches:
-      - 'release/**'
-    types: [opened]
-  workflow_call:
-    inputs:
-      pr_number:
-        description: 'Pull request number'
-        required: true
-        type: number
-      build_sha:
-        description: 'SHA of commit to build'
-        required: true
-        type: string
-      pr_head_sha:
-        description: 'SHA of head commit of pull request'
-        required: true
-        type: string
+    pull_request:
+        branches:
+            - 'release/**'
+        types: [opened]
+    workflow_call:
+        inputs:
+            pr_number:
+                description: 'Pull request number'
+                required: true
+                type: number
+            build_sha:
+                description: 'SHA of commit to build'
+                required: true
+                type: string
+            pr_head_sha:
+                description: 'SHA of head commit of pull request'
+                required: true
+                type: string
 
 jobs:
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    env:
-      # When this is run from a comment, we need to manually pass the build sha
-      BUILD_SHA: ${{ inputs.build_sha || github.sha }}
-    outputs:
-      eas_build_url: ${{ steps.build.outputs.eas_build_url }}
-      build_sha: ${{ env.BUILD_SHA }}
-      # RCs are built from the potential merge commit of the PR, but we
-      # reference the PR head commit in the comment so we know which commits are
-      # included in the RC
-      pr_head_sha: ${{ inputs.pr_head_sha || github.event.pull_request.head.sha }}
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ env.BUILD_SHA }}
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Build
-        id: build
-        # Check whether EAS build needs the sha of the commit to build
-        run: |
-          eas_build_url=$( echo 'Run EAS build here, ideally with nowait' )
-          echo "eas_build_url=$eas_build_url" >> $GITHUB_OUTPUT
-
-  comment:
-    name: Comment
-    runs-on: ubuntu-latest
-    needs: build
-
-    steps:
-      - name: Create GitHub App Token
-        uses: actions/create-github-app-token@v1
-        id: app-token
-        with:
-          app-id: ${{ vars.RELEASE_BOT_APP_ID }}
-          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
-
-      - name: Comment on PR
+    build:
+        name: Build
+        runs-on: ubuntu-latest
         env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
-          COMMENT_BODY: |
-            :construction: Release candidate build based on ${{ needs.build.outputs.build_sha }} (potential merge of ${{ needs.build.outputs.pr_head_sha }}): ${{ needs.build.outputs.eas_build_url }}
+            # When this is run from a comment, we need to manually pass the build sha
+            BUILD_SHA: ${{ inputs.build_sha || github.sha }}
+        outputs:
+            eas_build_url: ${{ steps.build.outputs.eas_build_url }}
+            build_sha: ${{ env.BUILD_SHA }}
+            # RCs are built from the potential merge commit of the PR, but we
+            # reference the PR head commit in the comment so we know which commits are
+            # included in the RC
+            pr_head_sha: ${{ inputs.pr_head_sha || github.event.pull_request.head.sha }}
 
-        run: |
-          gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --repo "$GITHUB_REPOSITORY"
+        steps:
+            - name: Create GitHub App Token
+              uses: actions/create-github-app-token@v1
+              id: app-token
+              with:
+                  app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+                  private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  ref: ${{ env.BUILD_SHA }}
+                  fetch-depth: 0
+
+            - name: Parse version
+              id: version
+              uses: ./.github/parse-version
+
+            - name: Generate cherry pick release notes
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  RELEASE_BRANCH: rc/v${{ steps.version.outputs.releaseMinor }}.0
+              run: |
+                  chmod +x scripts/generate-cherry-pick-release-notes.sh
+                  ./scripts/generate-cherry-pick-release-notes.sh
+
+                  # Format the release notes
+                  npx prettier --write release-notes/**/*.md
+
+                  git config --global user.name 'awana-release-bot[bot]'
+                  git config --global user.email '${{ vars.RELEASE_BOT_USER_ID }}+awana-release-bot[bot]@users.noreply.github.com'
+
+                  # Fetch and checkout the branch
+                  git fetch origin $RELEASE_BRANCH
+                  git checkout $RELEASE_BRANCH
+
+                  git add release-notes/
+                  git commit -m "docs: add cherry pick commits to release notes"
+                  git push origin $RELEASE_BRANCH
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: '20'
+                  cache: 'npm'
+
+            - name: Set up Expo and EAS
+              uses: expo/expo-github-action@v8
+              with:
+                  eas-version: latest
+                  token: ${{ secrets.EXPO_TOKEN }}
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Build on EAS
+              id: build
+              env:
+                  EAS_PROJECT_URL: ${{ vars.EAS_PROJECT_URL }}
+              run: |
+                  echo "Build ID: $build_id"
+              #   removing for now so we dont have unnecessart builds
+              #   build_id=$( eas build --platform android --profile release-candidate --json --non-interactive --no-wait | jq '.[0].id' --raw-output )
+              #   if [ -z "$build_id" ]; then
+              #     echo "Unable to get build ID"
+              #     exit 1
+              #   fi
+              #   echo "Build ID: $build_id"
+              #   eas_build_url="$EAS_PROJECT_URL/builds/$build_id"
+              #   echo "eas_build_url=$eas_build_url" >> $GITHUB_OUTPUT
+
+    comment:
+        name: Comment
+        runs-on: ubuntu-latest
+        needs: build
+
+        steps:
+            - name: Create GitHub App Token
+              uses: actions/create-github-app-token@v1
+              id: app-token
+              with:
+                  app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+                  private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+
+            - name: Comment on PR
+              env:
+                  GH_TOKEN: ${{ steps.app-token.outputs.token }}
+                  PR_NUMBER: ${{ inputs.pr_number || github.event.pull_request.number }}
+                  COMMENT_BODY: |
+                      :construction: Release candidate build based on ${{ needs.build.outputs.build_sha }} (potential merge of ${{ needs.build.outputs.pr_head_sha }}): ${{ needs.build.outputs.eas_build_url }}
+
+              run: |
+                  gh pr comment $PR_NUMBER --body "$COMMENT_BODY" --repo "$GITHUB_REPOSITORY"

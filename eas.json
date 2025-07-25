@@ -1,0 +1,45 @@
+{
+	"cli": {
+		"version": ">= 14.5.0",
+		"appVersionSource": "remote",
+		"requireCommit": true
+	},
+	"build": {
+		"base": {
+			"android": {
+				"image": "latest",
+				"node": "20.18.0"
+			},
+			"ios": {
+				"image": "latest",
+				"node": "20.18.0"
+			}
+		},
+		"development": {
+			"extends": "base",
+			"developmentClient": true,
+			"distribution": "internal",
+			"env": {
+				"APP_VARIANT": "development"
+			}
+		},
+		"release-candidate": {
+			"extends": "base",
+			"distribution": "internal",
+			"channel": "preview",
+			"env": {
+				"APP_VARIANT": "releaseCandidate"
+			}
+		},
+		"production": {
+			"extends": "base",
+			"autoIncrement": true,
+			"env": {
+				"APP_VARIANT": "production"
+			}
+		}
+	},
+	"submit": {
+		"production": {}
+	}
+}

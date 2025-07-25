@@ -1,88 +1,19 @@
-# CoMapeo Apps Release automations
+# Release Automations with Expo
 
-This repository contains example/template workflows for automating the release of CoMapeo apps. These are currently in the early stages of development and are intended to verify some proposals for our release strategy, and at the same time facilitate the release process in the meantime.
+Sandbox repo for getting https://github.com/digidem/release-automations to work with Expo App Services.
 
-## Workflows
+## Working locally
 
-### [Start Feature Release](.github/workflows/feature-release.yml)
+Ensure you have a [relevant NodeJS version](./.nvmrc) installed. After cloning the repo:
 
-#### Triggers
+1. Run `npm run prebuild` to generate native directories.
+2. Run `npm start` to start the development server
+3. Run `npm run android` to build the dev client for running the Android application.
 
-- Manually triggered by the team when they want to start a new feature release. This marks the the feature-freeze of the current release cycle, and starts a new release cycle on the `develop` branch.
+## Repository setup
 
-#### Effects
+Make sure you have the following set up for the GitHub repo:
 
-1. Creates a new release branch from `develop` named `release/v${next_version}.x`
-2. Creates a new release candidate branch from `develop` named `rc/v${next_version}.0` and bump the `package.json` version to the target version.
-3. Creates a new pull request from `rc/v${next_version}.0` to `release/v${next_version}.x` with the changes in `rc/v${next_version}.0`.
+- Add a [repository secret](https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions#creating-secrets-for-a-repository) called `EXPO_TOKEN`. Refer to [Expo's docs](https://docs.expo.dev/build/building-on-ci/#provide-a-personal-access-token-to-authenticate-with-your-expo-account-on-ci) for generating the token.
 
-A release candidate build will be triggered by the creation of the PR (see [below](#build-release-candidate)).
-
-### [Build Release Candidate](.github/workflows/build-rc.yml)
-
-#### Triggers
-
-1. Opening a PR that targets a base branch that matches `release/**`
-2. Commenting on a PR that targets a base branch that matches `release/**` with the `/build-rc` command.
-
-#### Effects
-
-1. Triggers a Release Candidate build on EAS
-2. Creates a comment on the Release Candidate PR with a link to the EAS build process.
-
-### [Build Release](.github/workflows/build-release.yml)
-
-#### Triggers
-
-1. Merging a PR that targets a base branch that matches `release/**`
-
-#### Effects
-
-1. Triggers a Release build on EAS
-2. Creates a comment on the (merged) Release Candidate PR with a link to the EAS build process.
-
-### [Post Release Check](.github/workflows/post-release-check.yml)
-
-#### Triggers
-
-1. Merging a PR that targets a base branch that matches `release/**`
-
-#### Effects
-
-1. Checks for any commits made to the release candidate since branching from `develop` that were not cherry-picked from `develop`.
-2. Creates an issue to manually check any non-cherry-picked commits and add them to `develop` if necessary.
-
-### [Start Hotfix Release](.github/workflows/hotfix-release.yml)
-
-#### Triggers
-
-- Manually triggered by the team when they want to start a new hotfix release. User must enter the release version to hotfix.
-
-#### Effects
-
-1. Creates a new release canddiate branch from the target release branch (e.g. `release/v4.x`) named `rc/v${release_version}.${hotfix_version}`.
-2. Creates a new pull request from `rc/v${release_version}.${hotfix_version}` to `release/v${release_version}.x`.
-
-A release candidate build will be triggered by the creation of the PR (see [above](#build-release-candidate)).
-
-### [Check Release Branch](.github/workflows/check-release-branch.yml)
-
-#### Triggers
-
-- Opening, syncing or reopening a PR that targets a base branch that matches `release/**`
-
-#### Effects
-
-1. Checks there are no commits made to the release branch while a release candidate PR is open.
-
-This check is important to ensure that the release candidate (and release) do not include unexpected code which has been pushed to the release branch after the release candidate branch was created.
-
-### [Build Bot](.github/workflows/build-bot.yml)
-
-#### Triggers
-
-- Commenting on a PR with the `/buildrc` command.
-
-#### Effects
-
-1. Triggers the [Build Release Candidate](#build-release-candidate) workflow.
+- Add a [repository variable](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository) called `EAS_PROJECT_URL`. This should point to the overview page for your project on Expo (something like `https://expo.dev/accounts/<account_name>/projects/<project_name>`). **It should NOT include the forward slash at the end (`/`)**.
