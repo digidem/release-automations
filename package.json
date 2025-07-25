@@ -1,33 +1,24 @@
 {
-	"name": "release-automations-example",
-	"version": "1.6.0",
-	"main": "index.ts",
-	"scripts": {
-		"start": "expo start",
-		"android": "expo run:android",
-		"ios": "expo run:ios",
-		"check:format": "prettier --check --cache .",
-		"check:types": "tsc --noEmit",
-		"prebuild": "expo prebuild",
-		"prepare": "husky"
-	},
-	"dependencies": {
-		"expo": "52.0.30",
-		"expo-application": "6.0.2",
-		"expo-dev-client": "5.0.11",
-		"expo-status-bar": "2.0.1",
-		"expo-updates": "0.26.16",
-		"react": "18.3.1",
-		"react-native": "0.76.6"
-	},
-	"devDependencies": {
-		"@babel/core": "7.26.7",
-		"@types/node": "20.17.16",
-		"@types/react": "18.3.18",
-		"husky": "9.1.7",
-		"lint-staged": "15.4.3",
-		"prettier": "3.4.2",
-		"typescript": "5.7.3"
-	},
-	"private": true
+  "name": "release-automations",
+  "version": "1.5.0-pre",
+  "description": "Release automations for CoMapeo apps",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "semver": "^7.6.3"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/digidem/release-automations.git"
+  },
+  "bugs": {
+    "url": "https://github.com/digidem/release-automations/issues"
+  },
+  "homepage": "https://github.com/digidem/release-automations#readme"
 }
